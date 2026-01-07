@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -19,4 +20,24 @@ class ProductService:
         result = await session.execute(select(TrackedProduct))
         products = result.scalars().all()
         return products
+    
+    @staticmethod
+    async def get_product_by_id(product_id: int, session: AsyncSession) -> TrackedProduct:
+        result = await session.execute(
+            select(TrackedProduct).where(TrackedProduct.id == product_id)
+        )
+        product = result.scalar_one_or_none()
+
+        if product is None:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        return product
+    
+    @staticmethod
+    async def delete_product(product_id: int, session: AsyncSession) -> None:
+        product = await ProductService.get_product_by_id(product_id, session)
+        
+        await session.delete(product)
+        await session.commit()
+
 
