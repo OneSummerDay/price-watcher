@@ -26,3 +26,24 @@ async def read_products(
 ):
     products = await ProductService.read_products(session=session)
     return products
+
+
+@router.get("/{product_id}", response_model=ProductRead)
+async def get_product_by_id(
+    product_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    product = await ProductService.get_product_by_id(
+        product_id=product_id,
+        session=session)
+    return product
+
+@router.delete("/{product_id}", status_code=204)
+async def delete_product(
+    product_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    await ProductService.delete_product(
+        product_id=product_id,
+        session=session)
+    return None
