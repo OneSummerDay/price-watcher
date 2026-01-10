@@ -11,3 +11,7 @@ class ProductRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ProductUpdate(BaseModel):
+    name: str | None = None
+    url: str | None = None
