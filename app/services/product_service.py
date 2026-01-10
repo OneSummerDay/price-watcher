@@ -8,6 +8,8 @@ from app.schemas.product import ProductCreate, ProductRead
 class ProductService:
     @staticmethod
     async def create_product(data: ProductCreate, session: AsyncSession) -> TrackedProduct:
+        await ProductService._ensure_url_unique(session=session, url=data.url)
+
         product = TrackedProduct(name=data.name, url=data.url)
         
         session.add(product)
@@ -46,8 +48,14 @@ class ProductService:
 
         if data.name is not None:
             product.name = data.name
+            
         if data.url is not None:
-            product.url = data.url 
+             await ProductService._ensure_url_unique(
+                session=session,
+                url=data.url,
+                exclude_id=product_id,
+            )
+        product.url = data.url
         
         await session.commit()
         await session.refresh(product)
