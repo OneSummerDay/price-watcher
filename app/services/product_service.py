@@ -53,4 +53,19 @@ class ProductService:
         await session.refresh(product)
         return product
 
+    @staticmethod
+    async def _ensure_url_unique(
+        url: str, 
+        session: AsyncSession,
+        exclude_id: int | None = None) -> None:
 
+        query = select(TrackedProduct).where(TrackedProduct.url == url)
+
+        if exclude_id is not None:
+            query = query.where(TrackedProduct.id != exclude_id)
+
+        result = await session.execute(query)
+        existing_product = result.scalar_one_or_none()
+
+        if existing_product is not None:
+            raise HTTPException(status_code=400, detail="Product with this URL already exists")
