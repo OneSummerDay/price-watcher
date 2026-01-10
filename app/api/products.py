@@ -47,3 +47,15 @@ async def delete_product(
         product_id=product_id,
         session=session)
     return None
+
+@router.put("/{product_id}", response_model=ProductRead)
+async def update_product(
+    product_id: int,
+    data: ProductCreate,
+    session: AsyncSession = Depends(get_session)
+):
+    product = await ProductService.update_product(
+        product_id=product_id,
+        data=data,
+        session=session)
+    return product
