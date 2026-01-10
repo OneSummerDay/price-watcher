@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi import Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -22,10 +23,17 @@ async def create_product(
     
 @router.get("/", response_model=list[ProductRead])
 async def read_products(
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    sort: str = Query("id")
 ):
-    products = await ProductService.read_products(session=session)
-    return products
+    return await ProductService.get_products(
+        session=session,
+        limit=limit,
+        offset=offset,
+        sort=sort,
+    )
 
 
 @router.get("/{product_id}", response_model=ProductRead)
