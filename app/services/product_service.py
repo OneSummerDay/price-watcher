@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, asc, desc
 
 from app.db.models import TrackedProduct
 from app.schemas.product import ProductCreate, ProductRead
@@ -18,11 +18,36 @@ class ProductService:
         return product
     
     @staticmethod
-    async def read_products(session: AsyncSession) -> list[TrackedProduct]:
-        result = await session.execute(select(TrackedProduct))
-        products = result.scalars().all()
-        return products
-    
+    async def get_products(
+        session: AsyncSession,
+        limit: int = 20,
+        offset: int = 0,
+        sort: str = "id",
+    ) -> list[TrackedProduct]:
+       
+        if limit < 1:
+            limit = 1
+        if limit > 100:
+            limit = 100
+        if offset < 0:
+            offset = 0
+
+
+        if sort == "-id":
+            order = desc(TrackedProduct.id)
+        else:
+            order = asc(TrackedProduct.id)
+
+        query = (
+            select(TrackedProduct)
+            .order_by(order)
+            .limit(limit)
+            .offset(offset)
+        )
+
+        result = await session.execute(query)
+        return result.scalars().all()
+        
     @staticmethod
     async def get_product_by_id(product_id: int, session: AsyncSession) -> TrackedProduct:
         result = await session.execute(
@@ -48,7 +73,7 @@ class ProductService:
 
         if data.name is not None:
             product.name = data.name
-            
+
         if data.url is not None:
              await ProductService._ensure_url_unique(
                 session=session,
