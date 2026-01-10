@@ -40,4 +40,17 @@ class ProductService:
         await session.delete(product)
         await session.commit()
 
+    @staticmethod
+    async def update_product(product_id: int, data: ProductCreate, session: AsyncSession) -> TrackedProduct:
+        product = await ProductService.get_product_by_id(product_id, session)
+
+        if data.name is not None:
+            product.name = data.name
+        if data.url is not None:
+            product.url = data.url 
+        
+        await session.commit()
+        await session.refresh(product)
+        return product
+
 
